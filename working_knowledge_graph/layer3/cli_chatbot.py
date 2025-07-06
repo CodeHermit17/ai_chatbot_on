@@ -21,7 +21,7 @@ from kg_extractor import CANONICAL_ENTITIES, get_canonical_entity_info
 
 # --- LLM API Configuration ---
 # IMPORTANT: Replace "YOUR_API_KEY_HERE" with your actual Google Gemini API Key
-API_KEY = "AIzaSyDoFX40q42xF6rjrLUTBnqVqJQMbzeVSr8" 
+API_KEY = "YOUR_API_KEY_HERE" 
 LLM_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
 MAX_LLM_RETRIES = 3 # Max attempts for LLM to generate a good response
 
