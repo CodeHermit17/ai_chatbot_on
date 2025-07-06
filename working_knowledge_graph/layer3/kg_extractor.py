@@ -395,12 +395,13 @@ def process_document_node(doc_data):
 
     Args:
         doc_data (dict): A dictionary representing a single DOCUMENT NODE.
+                         Expected to have a 'doc_id' key (which will now be the original URL or shortened URL).
 
     Returns:
         list: A list of all extracted triples for this document.
     """
     all_doc_triples = []
-    doc_id = doc_data.get("doc_id")
+    doc_id = doc_data.get("doc_id") # This doc_id is now expected to be the original URL or shortened URL
     if not doc_id:
         print(f"Warning: Document node missing 'doc_id'. Skipping: {doc_data}")
         return []
@@ -410,6 +411,10 @@ def process_document_node(doc_data):
     for key in metadata_fields:
         value = doc_data.get("metadata", {}).get(key)
         if value is not None and value != "":
+            # If the metadata 'original_url' is identical to the doc_id, skip adding it as a separate triple.
+            # This handles cases where the doc_id IS the full original URL.
+            if key == "original_url" and str(value) == doc_id:
+                continue
             all_doc_triples.append((doc_id, f"has_{key}", str(value)))
 
     # Track entities found in the document's main descriptive fields for higher-level inference
@@ -618,12 +623,18 @@ def process_document_node(doc_data):
     for link_info in doc_data.get("extracted_links", []):
         href = link_info.get("href")
         if href and not href.startswith("javascript:"):
+            # If the link is to the doc_id itself, it's redundant
+            if href == doc_id:
+                continue
             all_doc_triples.append((doc_id, "links_to", href))
 
     # 5. "HAS_TABLE" relationships
     if doc_data.get("extracted_tables"):
         for i, table_data in enumerate(doc_data["extracted_tables"]):
-            table_id = f"Table_{doc_id}_{i+1}"
+            # Use a table ID that incorporates the doc_id for clarity
+            # Replace characters that might be problematic in a file path or simple string ID
+            safe_doc_id = doc_id.replace('https://', '').replace('http://', '').replace('/', '_').replace(':', '_').replace('.', '_').replace('?', '_').replace('=', '_').replace('&', '_')
+            table_id = f"Table_{safe_doc_id}_{i+1}"
             all_doc_triples.append((doc_id, "has_table", table_id))
 
 
